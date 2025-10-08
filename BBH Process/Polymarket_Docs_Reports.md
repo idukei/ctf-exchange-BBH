@@ -65,7 +65,7 @@ Actionable takeaways: Use UMA docs for testing dispute paths in UmaCtfAdapter (e
 
 # Polymarket_Specific_Docs_Report.md
 
-## Program Documentation Summary
+## Deeper Program Documentation Summary
 
 From Immunefi pages, the program details emphasize high bounties for critical smart contract impacts, with testing confined to local forks to avoid mainnet interactions. Rewards are scaled based on funds at risk, and known audit issues are ineligible.  
 
