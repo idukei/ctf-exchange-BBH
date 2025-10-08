@@ -1,0 +1,132 @@
+# Polymarket_Specific_Docs_Report.md
+
+## Program Documentation Summary
+
+From Immunefi pages, the program details emphasize high bounties for critical smart contract impacts, with testing confined to local forks to avoid mainnet interactions. Rewards are scaled based on funds at risk, and known audit issues are ineligible.  
+
+### Rewards Table
+| Severity | Asset Type | Min Reward | Max Reward | Conditions |
+|----------|------------|------------|------------|------------|
+| Critical | Smart Contracts | $25,000 | $1,000,000 | 10% of affected funds; e.g., fund theft, permanent freezing, insolvency (scales with temporary freezing duration). |
+| High | Smart Contracts | $2,000 | $25,000 | Theft of unclaimed yield, temporary freezing (doubles per 24 hours frozen). |
+| Medium | Smart Contracts | $2,000 | $2,000 | Flat rate for other impacts. |
+| Low | Smart Contracts | $1,000 | $1,000 | Flat rate. |
+| Critical | Websites/Apps | $5,000 | $20,000 | Fund loss without action ($20K), site takedown ($5K). |
+| High | Websites/Apps | $5,000 | $5,000 | Flat rate. |
+| Medium | Websites/Apps | $2,000 | $2,000 | Flat rate. |
+| Low | Websites/Apps | $1,000 | $1,000 | Flat rate. |
+
+### Scope Table
+| Category | Details |
+|----------|---------|
+| In-Scope | Smart Contracts: UmaCtfAdapter (0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74), NegRiskUmaCtfAdapter (0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d), and others listed in Phase 0; Websites/Apps. Primacy of Impact for critical/high. |
+| Out-of-Scope | Oracle data errors (unless code-manipulated), economic attacks, liquidity issues, Sybil/centralization risks, phishing, DoS. |
+| Rules | PoC mandatory; no mainnet/testnet testing; no oracle/third-party interactions; responsible disclosure (embargo). Eligibility: Novel bugs only, no audit duplicates. |
+
+## Technical Specs Analysis
+
+Polymarket's docs provide high-level architecture: Prediction markets with binary outcomes, shares priced 0-1 USDC, fully collateralized pairs. Codebase from repos includes adapter for UMA oracle resolution (init, reset, resolve functions) and conditional tokens for ERC1155 assets.  CTF Exchange enables atomic swaps with offchain matching.
+
+Dependency docs: UMA OOv2 for prediction markets, with proposers/disputers; no specific griefing details fetched, but general risks in disputes. Conditional Tokens (Gnosis fork) allow tokenizing outcomes, with split/merge/redeem functions; invariants include payout vectors summing to 1. 
+
+| Component | Key Invariants | Risks |
+|-----------|----------------|-------|
+| UmaCtfAdapter | Resolution data from UMA OO; auto-reset on disputes; resolve callable post-data. | Oracle manipulation via disputes; griefing by repeated invalid disputes delaying resolution. |
+| ConditionalTokens | Payout vectors sum to 1; collection IDs via elliptic curve addition; positions redeemable post-report. | Infinite minting of worthless losing tokens (non-issue but complexity for integrations); no support for irregular ERC-20 (stuck funds). |
+| CTFExchange | Orders EIP-712 signed; atomic fills by trusted operators; tokenId enforces valid trades. | Operator trust for matching; signature malleability if checks bypassed. |
+| NegRiskAdapter | Wrapped collateral for neg-risk markets; integrates UMA/CTF. | Access control flaws in operator functions; economic griefing in disputes. |
+
+## Audit and Security Docs
+
+Audits from ChainSecurity and OpenZeppelin cover key contracts; most issues fixed, with focus on signature security and functional correctness.    Known issues ineligible per program rules.
+
+| Vuln | Source | Fixed? | Hunting Note |
+|------|--------|--------|--------------|
+| Signatures Valid for Any Address (Critical) | ChainSecurity Exchange Audit | Yes | Avoid duplicates; test EOA signer enforcement for fund theft vectors. |
+| ORDER_TYPEHASH Incorrect (Critical) | ChainSecurity Exchange Audit | Yes | Check hash mismatches in EIP-712; potential for replay in oracle resolutions. |
+| Fee Rate Not Hashed (High) | ChainSecurity Exchange Audit | Yes | Verify fee inclusion; hunt operator exploits amplifying losses post-oracle. |
+| Infinite Minting of Worthless Tokens | ChainSecurity Conditional Tokens Audit | No (non-risk) | Test integrations for balance accounting errors post-resolution; no direct fund loss. |
+| No Irregular ERC-20 Support | ChainSecurity Conditional Tokens Audit | No | Focus on collateral failures; could cause stuck funds in Polymarket flows. |
+| Fee Approval Required (Medium) | ChainSecurity Exchange Audit | Yes | Probe residual approval exploits in fee deductions. |
+
+## Additional Findings
+
+Unofficial resources: Gnosis Conditional Tokens docs detail API (splitPosition, mergePositions, redeemPositions), with security disclaimer (no warranty).  Community insights from X: No results on "Polymarket contract docs," suggesting limited public dev discussions. Web searches yielded sparse dev specs, mostly high-level overviews. 
+
+## Implications for Auditing
+
+Actionable takeaways: Use UMA docs for testing dispute paths in UmaCtfAdapter (e.g., symbolic execution on reset/resolve with Halmos for griefing invariants like dispute bonds). Annotate CTF invariants (payout sum=1) with Scribble for formal verification; prioritize threat modeling operator trust in CTFExchange for economic attacks. Gaps: Limited detailed mixin specs—rely on code comments; undocumented UMA griefing—test locally for DoS via repeated disputes. Focus on edges like infinite minting in neg-risk markets for novel fund freezing.
+
+## References
+- Immunefi Pages: [Information](https://immunefi.com/bug-bounty/polymarket/information/#top), [Scope](https://immunefi.com/bug-bounty/polymarket/scope/#top), [Resources](https://immunefi.com/bug-bounty/polymarket/resources/#top)
+- Repos: [uma-ctf-adapter](https://github.com/Polymarket/uma-ctf-adapter), [conditional-tokens-contracts](https://github.com/Polymarket/conditional-tokens-contracts), [ctf-exchange](https://github.com/Polymarket/ctf-exchange), [contract-security](https://github.com/Polymarket/contract-security)
+- Dependency Docs: [UMA](https://docs.umaproject.org/), [Conditional Tokens](https://conditional-tokens.readthedocs.io/en/latest/)
+- Audits: [Exchange ChainSecurity](https://www.chainsecurity.com/security-audit/polymarket-exchange-smart-contracts), [Conditional Tokens ChainSecurity](https://www.chainsecurity.com/security-audit/polymarket-conditional-tokens), PDF Summaries 
+
+# Polymarket_Specific_Docs_Report.md
+
+## Program Documentation Summary
+
+From Immunefi pages, the program details emphasize high bounties for critical smart contract impacts, with testing confined to local forks to avoid mainnet interactions. Rewards are scaled based on funds at risk, and known audit issues are ineligible.  
+
+### Rewards Table
+| Severity | Asset Type | Min Reward | Max Reward | Conditions |
+|----------|------------|------------|------------|------------|
+| Critical | Smart Contracts | $25,000 | $1,000,000 | 10% of affected funds; e.g., fund theft, permanent freezing, insolvency (scales with temporary freezing duration). |
+| High | Smart Contracts | $2,000 | $25,000 | Theft of unclaimed yield, temporary freezing (doubles per 24 hours frozen). |
+| Medium | Smart Contracts | $2,000 | $2,000 | Flat rate for other impacts. |
+| Low | Smart Contracts | $1,000 | $1,000 | Flat rate. |
+| Critical | Websites/Apps | $5,000 | $20,000 | Fund loss without action ($20K), site takedown ($5K). |
+| High | Websites/Apps | $5,000 | $5,000 | Flat rate. |
+| Medium | Websites/Apps | $2,000 | $2,000 | Flat rate. |
+| Low | Websites/Apps | $1,000 | $1,000 | Flat rate. |
+
+### Scope Table
+| Category | Details |
+|----------|---------|
+| In-Scope | Smart Contracts: UmaCtfAdapter (0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74), NegRiskUmaCtfAdapter (0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d), and others listed in Phase 0; Websites/Apps. Primacy of Impact for critical/high. |
+| Out-of-Scope | Oracle data errors (unless code-manipulated), economic attacks, liquidity issues, Sybil/centralization risks, phishing, DoS. |
+| Rules | PoC mandatory; no mainnet/testnet testing; no oracle/third-party interactions; responsible disclosure (embargo). Eligibility: Novel bugs only, no audit duplicates. |
+
+## Technical Specs Analysis
+
+Deeper research reveals detailed workflows in key contracts. Polymarket's docs outline binary outcome shares (0-1 USDC pricing) using Gnosis CTF for ERC1155 tokens. The UmaCtfAdapter handles market resolution via UMA OO: initializeMarket stores params and requests data; prepareResolve sets CTF condition; resolve fetches and applies data post-liveness or disputes. Auto-reset on first dispute mitigates griefing, but repeated disputes fallback to DVM (48-72 hours delay). CTF enables split/merge/redeem with invariants like payout vectors summing to 1. CTFExchange uses EIP-712 signed orders for atomic fills by operators.
+
+UMA OO APIs (requestPrice, proposePrice, disputePrice, settle) involve bonds and timestamps; griefing via invalid disputes is possible but mitigated by bonds and auto-resets. Conditional Tokens API: prepareCondition (sets oracle/question), splitPosition (collateral to positions), mergePositions (reverse), redeemPositions (burn for collateral post-report), reportPayouts (oracle reports). Codebase uses elliptic curves for collection IDs; no reentrancy guards noted in summaries, but audits confirm functional correctness.
+
+| Component | Key Invariants | Risks |
+|-----------|----------------|-------|
+| UmaCtfAdapter | Resolution only post-liveness/dispute; auto-reset on first dispute; DVM fallback on repeats; ancillary data/timestamps stored on init. | Griefing via repeated disputes delaying resolution (test for freezing funds >24h); oracle manipulation if bonds bypassed; reentrancy in resolve callbacks. |
+| ConditionalTokens | Payout vectors sum to parent (e.g., 1 for collateral); position IDs via curve addition; redeem only post-valid report. | Infinite minting of worthless tokens (complexity, no direct loss but integration errors); irregular ERC-20 stuck funds; manipulation in reportPayouts if oracle compromised. |
+| CTFExchange | Orders EIP-712 hashed/signed; fills atomic by trusted operators; tokenId validates trades. | Operator front-running; signature replay if TYPEHASH flawed; economic exploits in fee deductions. |
+| NegRiskAdapter | Groups binary markets; wrapped collateral; integrates UMA/CTF for neg-risk. | Access control in operator funcs; dispute griefing amplifying delays in grouped resolutions. |
+
+## Audit and Security Docs
+
+Deepened analysis from ChainSecurity reports: Exchange audit praises signature handling and access control, no vulns listed but notes gas optimizations. Conditional Tokens: Infinite minting (non-risk, complexity from ID negation); high functional correctness. OpenZeppelin audit for UmaCtfAdapter referenced in repo (PDF available), but no extracted vulns; focuses on OO integration. Audits are time-boxed; complement with fuzzing. Known issues ineligible; hunt escalations (e.g., low-sev in integrated env).
+
+| Vuln | Source | Fixed? | Hunting Note |
+|------|--------|--------|--------------|
+| Signatures Valid for Any Address (Critical) | ChainSecurity Exchange Audit | Yes | Test EOA enforcement; potential fund theft if residual. |
+| ORDER_TYPEHASH Incorrect (Critical) | ChainSecurity Exchange Audit | Yes | Hash mismatches in EIP-712; replay risks in resolutions. |
+| Fee Rate Not Hashed (High) | ChainSecurity Exchange Audit | Yes | Fee inclusion flaws; operator exploits post-oracle. |
+| Infinite Minting of Worthless Tokens | ChainSecurity Conditional Tokens Audit | N/A (non-risk) | Integration accounting errors; no loss but test neg-risk. |
+| No Irregular ERC-20 Support | ChainSecurity Conditional Tokens Audit | No | Collateral stuck; probe in Polymarket redeem flows. |
+| Fee Approval Required (Medium) | ChainSecurity Exchange Audit | Yes | Residual approval exploits in fees. |
+| ID Negation Complexity | ChainSecurity Conditional Tokens Audit | N/A | Elliptic curve edges; could escalate with UMA disputes. |
+
+## Additional Findings
+
+Unofficial resources: Gnosis CTF docs detail APIs with no-warranty disclaimer; elliptic curve ID computation adds complexity.  Community insights from X: Governance attacks on UMA (e.g., whale with 25% votes manipulated oracle for false settlements, $7M exploit).  Scams like Lord Miles fasting market manipulation (bet against self, silence to impact prices). Oracle manipulations in UMA (e.g., rogue actor 'BornTooLate.Eth', Ukraine contract hijack).  Poly Network exploit (2021, $612M, unrelated but CTF-like cross-chain risks). No new Polymarket code reviews; general DeFi vault exploits highlight oracle vulns.
+
+## Implications for Auditing
+
+Deeper insights: Leverage UMA OO docs for testing griefing (e.g., simulate repeated disputePrice calls in local forks to freeze resolutions, escalating rewards via duration scaling). Annotate CTF invariants (payout sum=1, ID curves) with Scribble; fuzz reportPayouts for oracle manipulations seen in attacks. Prioritize symbolic execution (Halmos) on UmaCtfAdapter reset/resolve paths for reentrancy, governance exploits (e.g., vote concentration risks). Gaps: Sparse inline comments—rely on audits; undocumented griefing (test DoS via bonds). Advice: Focus novel edges like ID negation in neg-risk, avoid fixed audit dupes; chain attacks (UMA whale + CTF redeem). Stop here: If pursuing griefing PoCs, need code_execution for simulations?
+
+## References
+- Immunefi Pages: [Information](https://immunefi.com/bug-bounty/polymarket/information/#top), [Scope](https://immunefi.com/bug-bounty/polymarket/scope/#top), [Resources](https://immunefi.com/bug-bounty/polymarket/resources/#top)
+- Repos: [uma-ctf-adapter](https://github.com/Polymarket/uma-ctf-adapter), [conditional-tokens-contracts](https://github.com/Polymarket/conditional-tokens-contracts), [ctf-exchange](https://github.com/Polymarket/ctf-exchange)
+- Dependency Docs: [UMA](https://docs.umaproject.org/), [Conditional Tokens](https://conditional-tokens.readthedocs.io/en/latest/)
+- Audits: [Exchange ChainSecurity](https://www.chainsecurity.com/security-audit/polymarket-exchange-smart-contracts), [Conditional Tokens ChainSecurity](https://www.chainsecurity.com/security-audit/polymarket-conditional-tokens), [OZ UMA-CTF](https://github.com/Polymarket/uma-ctf-adapter/blob/main/audit/Polymarket_UMA_Optimistic_Oracle_Adapter_Audit.pdf)
+- Additional: UMA Exploits [Yahoo](https://finance.yahoo.com/news/polymarket-suffers-uma-governance-attack-101646076.html), CTF PDF [ChainSecurity](https://cdn.prod.website-files.com/65d35b01a4034b72499019e8/662bad88a19be0834c4bcb94_ChainSecurity_Polymarket_Conditional_Tokens_audit_compressed.pdf)
+
