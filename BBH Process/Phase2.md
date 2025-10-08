@@ -555,17 +555,3 @@ Attacker with 25% UMA tokens:
 5. **Griefing via UMA Disputes (`UmaCtfAdapter.reset()`)**  
    **Why:** Repeated invalid disputes freeze resolution >24h → bounty doubles per day (temp freezing = HIGH reward).  
    **Hunt:** Test auto-reset on first dispute; simulate 48h+ freeze via DVM escalation; measure bond requirements.
-
-### Recommended First Batch
-**Batch 1: Core Trading Engine** (CTFExchange + Trading + Signatures)  
-**Rationale:**  
-- Highest risk (fund handling + past critical bugs)
-- Most complex (order matching, MINT/MERGE logic)
-- Foundational for other batches (all flows go through Trading)
-
-**Suggested Audit Sequence:**
-1. Start with `validateOrderSignature()` (signature bypass = immediate fund theft)
-2. Then `_validateOrder()` (checks nonce, expiration, fee)
-3. Then `_fillOrder()` (simple fill path)
-4. Then `_matchOrders()` (complex MINT/MERGE logic)
-5. Finally `matchOrders()` (entry point with operator checks)
