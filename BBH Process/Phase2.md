@@ -569,23 +569,3 @@ Attacker with 25% UMA tokens:
 3. Then `_fillOrder()` (simple fill path)
 4. Then `_matchOrders()` (complex MINT/MERGE logic)
 5. Finally `matchOrders()` (entry point with operator checks)
-
----
-
-## 9. CONFIRMATION REQUIRED
-
-**Proceed with Batch 1 (Core Trading Engine)?**  
-- **Contracts:** CTFExchange.sol, Trading.sol, Signatures.sol  
-- **Functions:** 8 total (fillOrder, matchOrders, _fillOrder, _matchOrders, _validateOrder, validateOrderSignature, _performOrderChecks, _deriveMatchType)  
-- **Estimated Time:** 3-5 days  
-- **Tools:** Slither (static analysis), Halmos (symbolic execution), Scribble (invariant checking), Foundry fuzzing  
-- **Focus:** Signature bypass, operator front-running, fee manipulation, balance checks
-
-**Next Steps After Confirmation:**
-1. Deep-dive into `Signatures.sol` for ECDSA edge cases
-2. Map all state changes in `_matchOrders()` for reentrancy
-3. Fuzz `_fillOrder()` with invalid orders (expired, wrong nonce, high fee)
-4. Review past audit findings (ChainSecurity Exchange report)
-5. Prepare PoC for Batch 1 findings before moving to Batch 2
-
-**Awaiting your confirmation to proceed with Batch 1 audit.**
