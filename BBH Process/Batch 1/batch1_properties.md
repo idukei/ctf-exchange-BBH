@@ -220,13 +220,5 @@ These helper functions should be defined at contract level to simplify property 
 - **CTFExchange.sol**: 5 properties
 - **Cross-contract**: 9 properties
 
----
 
-## Next Steps
 
-1. **Review & Confirm**: Please review these properties and confirm alignment with Immunefi bounty priorities
-2. **Property Refinement**: Any properties to add, modify, or remove?
-3. **Proceed to Part B**: Once confirmed, we'll annotate each contract with Scribble syntax
-4. **Mythril Execution**: Generate solc-json remapping files for each contract's dependencies
-
-**Estimated Annotation Time**: 4-6 hours per contract (8-12 hours total for Batch 1)
